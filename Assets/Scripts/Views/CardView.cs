@@ -24,6 +24,18 @@ public class CardView : MonoBehaviour
         _spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
+    public void Setup(CardData cardData)
+    {
+        this.CardData = cardData;
+        this._icon.sprite = cardData.cardSprite;
+        IsCollected = false;
+        _isFlipping = false;
+        _faceUp = false;
+        _spriteRenderer.sprite = _cardBack;
+        _icon.gameObject.SetActive(false);
+        transform.localScale = Vector3.one;
+    }
+
     //Input
     private void OnMouseDown()
     {
@@ -56,15 +68,14 @@ public class CardView : MonoBehaviour
     }
 
     // Animation Coroutine
-
     private IEnumerator FlipCard()
     {
         _isFlipping = true;
 
-        yield return StartCoroutine(FlipHalf(_flipDuration / 2, 1f, 0f));
+        yield return FlipHalf(_flipDuration / 2, 1f, 0f);
         _spriteRenderer.sprite = _faceUp ? _cardBack : _cardFace;
         _icon.gameObject.SetActive(!_faceUp);
-        yield return StartCoroutine(FlipHalf(_flipDuration / 2, 0f, 1f));
+        yield return FlipHalf(_flipDuration / 2, 0f, 1f);
 
         _faceUp = !_faceUp;
         _isFlipping = false;
@@ -72,14 +83,13 @@ public class CardView : MonoBehaviour
 
     private IEnumerator FlipHalf(float duration, float startScale, float endScale)
     {
-        Vector3 initialScale = transform.localScale;
         for (float time = 0; time < duration; time += Time.deltaTime)
         {
-            var scaleX = Mathf.Lerp(startScale, endScale, time / duration);
-            transform.localScale = new Vector3(scaleX * initialScale.x, initialScale.y, initialScale.z);
+            var scale = Mathf.Lerp(startScale, endScale, time / duration);
+            transform.localScale = new Vector3(scale, 1, 1);
             yield return null;
         }
-        transform.localScale = new Vector3(endScale * initialScale.x, initialScale.y, initialScale.z);
-    }
 
+        transform.localScale = new Vector3(endScale, 1, 1);
+    }
 }
