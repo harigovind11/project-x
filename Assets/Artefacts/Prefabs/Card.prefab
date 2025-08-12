@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8221760287466362471}
   - component: {fileID: 221830410671557912}
   - component: {fileID: 8226300988386212518}
+  - component: {fileID: -2868128037371766493}
   m_Layer: 0
   m_Name: Card
   m_TagString: Untagged
@@ -132,3 +133,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &-2868128037371766493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4051053964349132489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2eecbb79a3566d74a8a5e2eaf2caaa4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cardFace: {fileID: -1121452697, guid: f82b3f122b8a61142b871dc9ca951cd9, type: 3}
+  _cardBack: {fileID: -1441142970, guid: f82b3f122b8a61142b871dc9ca951cd9, type: 3}
+  _icon: {fileID: 8221760287466362471}
+  _flipDuration: 0.5
