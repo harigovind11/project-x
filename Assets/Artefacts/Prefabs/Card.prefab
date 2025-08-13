@@ -213,3 +213,5 @@ MonoBehaviour:
   _cardBack: {fileID: -1121452697, guid: f82b3f122b8a61142b871dc9ca951cd9, type: 3}
   _icon: {fileID: 8763221838238973150}
   _flipDuration: 0.5
+  _matchEffectPrefab: {fileID: 152368, guid: 023211deead76c94dad691d75c768a7d, type: 3}
+  _matchAnimationDuration: 0.3
