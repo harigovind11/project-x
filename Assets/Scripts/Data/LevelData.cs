@@ -6,5 +6,6 @@ public class LevelData : ScriptableObject
 {
     public int columns;
     public int rows;
+    public int maxNumberOfTurns;
     public List<CardData> cardsToUse; // List of unique cards for this level
 }

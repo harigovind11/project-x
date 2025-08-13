@@ -16,7 +16,10 @@ public class GameplayManager : MonoBehaviour
     // --- Private Game State ---
     private List<CardView> flippedCards = new List<CardView>();
     private int matchesFound = 0;
+    private int score = 0;
+    private int turnsTaken = 0;
     private bool isCheckingForMatch = false;
+    private bool isGameActive = true;
 
     #region --- Unity Methods & Event Handling ---
 
@@ -40,15 +43,20 @@ public class GameplayManager : MonoBehaviour
     void StartNewGame()
     {
         matchesFound = 0;
+        score = 0;
+        turnsTaken = 0;
+        isGameActive = true;
         isCheckingForMatch = false;
         flippedCards.Clear();
 
         CardGenerator.GenerateBoard(currentLevel);
+        EventManager.RaiseScoreUpdated(score);
+        EventManager.RaiseTurnUpdated(turnsTaken, currentLevel.maxNumberOfTurns);
     }
     private void HandleCardFlipped(CardView card)
     {
 
-        if (isCheckingForMatch)
+        if (!isGameActive || isCheckingForMatch)
         {
             return;
         }
@@ -58,6 +66,8 @@ public class GameplayManager : MonoBehaviour
 
         if (flippedCards.Count == 2)
         {
+            turnsTaken++;
+            EventManager.RaiseTurnUpdated(turnsTaken, currentLevel.maxNumberOfTurns);
             StartCoroutine(CheckForMatchCoroutine());
         }
     }
@@ -80,12 +90,14 @@ public class GameplayManager : MonoBehaviour
         {
 
             matchesFound++;
+            score++;
             card1.SetAsMatched();
             card2.SetAsMatched();
 
             //Todo : SFX MATCH FOUND
 
             EventManager.RaiseMatchFound(card1.CardData);
+            EventManager.RaiseScoreUpdated(score);
         }
         else
         {
@@ -106,9 +118,17 @@ public class GameplayManager : MonoBehaviour
         int totalPairsInLevel = currentLevel.columns * currentLevel.rows / 2;
         if (matchesFound >= totalPairsInLevel)
         {
-            // Todo : Trigger game won state, show UI, etc.
+            isGameActive = false;
             EventManager.RaiseGameWon();
+            // Todo : Trigger game won state, show UI, etc.
             Debug.Log("Game Won");
+        }
+        else if (currentLevel.maxNumberOfTurns > 0 && turnsTaken >= currentLevel.maxNumberOfTurns)
+        {
+            isGameActive = false;
+            EventManager.RaiseGameLost();
+            // Todo : Trigger game lost state, show UI, etc.
+            Debug.Log("Game Lost");
         }
     }
 }

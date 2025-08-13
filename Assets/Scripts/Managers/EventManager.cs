@@ -16,4 +16,14 @@ public static class EventManager
     // Game State Events
     public static event Action OnGameWon;
     public static void RaiseGameWon() => OnGameWon?.Invoke();
+
+    public static event Action<int> OnScoreUpdated;
+    public static void RaiseScoreUpdated(int newScore) => OnScoreUpdated?.Invoke(newScore);
+
+    public static event Action<int, int> OnTurnUpdated;
+    public static void RaiseTurnUpdated(int turnsTaken, int maxTurns) => OnTurnUpdated?.Invoke(turnsTaken, maxTurns);
+
+    public static event Action OnGameLost;
+    public static void RaiseGameLost() => OnGameLost?.Invoke();
+
 }
