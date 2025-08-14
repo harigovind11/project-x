@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class GameplayManager : MonoBehaviour
 {
@@ -8,18 +9,19 @@ public class GameplayManager : MonoBehaviour
     [SerializeField] private LevelData currentLevel;
 
     [Header("Dependencies")]
-    [SerializeField] private CardGenerator CardGenerator;
+    [SerializeField] private CardGenerator _cardGenerator;
+    [SerializeField] private SaveLoadManager _saveLoadManager;
 
     [Header("Game Feel")]
     [SerializeField] private float delayBeforeHidingMismatch = 0.8f;
 
     // --- Private Game State ---
-    private List<CardView> flippedCards = new List<CardView>();
-    private int matchesFound = 0;
-    private int score = 0;
-    private int turnsTaken = 0;
-    private bool isCheckingForMatch = false;
-    private bool isGameActive = true;
+    private List<CardView> _flippedCards = new List<CardView>();
+    private int _matchesFound = 0;
+    private int _score = 0;
+    private int _turnsTaken = 0;
+    private bool _isCheckingForMatch = false;
+    private bool _isGameActive = true;
 
     #region --- Unity Methods & Event Handling ---
 
@@ -35,39 +37,61 @@ public class GameplayManager : MonoBehaviour
 
     void Start()
     {
-        StartNewGame();
+        if (_saveLoadManager.DoesSaveFileExist())
+        {
+            RestoreGameState();
+        }
+        else
+        {
+            StartNewGame();
+        }
+
     }
 
     #endregion
 
     void StartNewGame()
     {
-        matchesFound = 0;
-        score = 0;
-        turnsTaken = 0;
-        isGameActive = true;
-        isCheckingForMatch = false;
-        flippedCards.Clear();
+        _matchesFound = 0;
+        _score = 0;
+        _turnsTaken = 0;
+        _isGameActive = true;
+        _isCheckingForMatch = false;
+        _flippedCards.Clear();
 
-        CardGenerator.GenerateBoard(currentLevel);
-        EventManager.RaiseScoreUpdated(score);
-        EventManager.RaiseTurnUpdated(turnsTaken, currentLevel.maxNumberOfTurns);
+        _cardGenerator.GenerateBoard(currentLevel);
+        EventManager.RaiseScoreUpdated(_score);
+        EventManager.RaiseTurnUpdated(_turnsTaken, currentLevel.maxNumberOfTurns);
+    }
+
+    void RestoreGameState()
+    {
+        GameSaveData saveData = _saveLoadManager.LoadGame();
+
+        _score = saveData.score;
+        _turnsTaken = saveData.turnsTaken;
+        _matchesFound = saveData.cardStates.Count(card => card.isMatched) / 2; 
+
+        _cardGenerator.GenerateBoardFromSave(currentLevel,saveData.cardStates);
+        
+        EventManager.RaiseScoreUpdated(_score);
+        EventManager.RaiseTurnUpdated(_turnsTaken, currentLevel.maxNumberOfTurns);
     }
     private void HandleCardFlipped(CardView card)
     {
 
-        if (!isGameActive || isCheckingForMatch)
+        if (!_isGameActive || _isCheckingForMatch)
         {
             return;
         }
 
         card.Flip();
-        flippedCards.Add(card);
+        _flippedCards.Add(card);
 
-        if (flippedCards.Count == 2)
+        if (_flippedCards.Count == 2)
         {
-            turnsTaken++;
-            EventManager.RaiseTurnUpdated(turnsTaken, currentLevel.maxNumberOfTurns);
+            _turnsTaken++;
+            EventManager.RaiseTurnUpdated(_turnsTaken, currentLevel.maxNumberOfTurns);
             StartCoroutine(CheckForMatchCoroutine());
         }
     }
@@ -76,59 +100,69 @@ public class GameplayManager : MonoBehaviour
     private IEnumerator CheckForMatchCoroutine()
     {
         // Block player input while we check the pair.
-        isCheckingForMatch = true;
-
-        // Wait for a moment so the player has time to see the second card.
+        _isCheckingForMatch = true;
         yield return new WaitForSeconds(delayBeforeHidingMismatch);
 
-        CardView card1 = flippedCards[0];
-        CardView card2 = flippedCards[1];
+        CardView card1 = _flippedCards[0];
+        CardView card2 = _flippedCards[1];
 
         // --- THE MATCHING LOGIC ---
         // We compare the unique cardID from our CardData ScriptableObjects.
         if (card1.CardData.cardID == card2.CardData.cardID)
         {
-
-            matchesFound++;
-            score++;
+            _matchesFound++;
+            _score++;
             card1.SetAsMatched();
             card2.SetAsMatched();
-
-            //Todo : SFX MATCH FOUND
-
             EventManager.RaiseMatchFound(card1.CardData);
-            EventManager.RaiseScoreUpdated(score);
+            EventManager.RaiseScoreUpdated(_score);
+            SaveCurrentGame();
         }
         else
         {
-            //Todo : SFX MISMATCH
-
             card1.Flip();
             card2.Flip();
-
-
             EventManager.RaiseMatchFailed();
         }
 
 
-        flippedCards.Clear();
-        isCheckingForMatch = false;
+        _flippedCards.Clear();
+        _isCheckingForMatch = false;
 
 
         int totalPairsInLevel = currentLevel.columns * currentLevel.rows / 2;
-        if (matchesFound >= totalPairsInLevel)
+        if (_matchesFound >= totalPairsInLevel)
         {
-            isGameActive = false;
+            _isGameActive = false;
             EventManager.RaiseGameWon();
             // Todo : Trigger game won state, show UI, etc.
             Debug.Log("Game Won");
         }
-        else if (currentLevel.maxNumberOfTurns > 0 && turnsTaken >= currentLevel.maxNumberOfTurns)
+        else if (currentLevel.maxNumberOfTurns > 0 && _turnsTaken >= currentLevel.maxNumberOfTurns)
         {
-            isGameActive = false;
+            _isGameActive = false;
             EventManager.RaiseGameLost();
             // Todo : Trigger game lost state, show UI, etc.
             Debug.Log("Game Lost");
         }
+    }
+
+    private void SaveCurrentGame()
+    {
+        GameSaveData saveData = new GameSaveData();
+        saveData.score = this._score;
+        saveData.turnsTaken = this._turnsTaken;
+        
+        // Get the state of all cards from the board
+        var cardsOnBoard = FindObjectsOfType<CardView>();
+        foreach (var card in cardsOnBoard)
+        {
+            saveData.cardStates.Add(new CardSaveState { 
+                cardID = card.CardData.cardID, 
+                isMatched = card.IsMatched
+            });
+        }
+        
+        _saveLoadManager.SaveGame(saveData);
     }
 }

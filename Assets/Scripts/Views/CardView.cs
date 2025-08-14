@@ -4,7 +4,7 @@ using System.Collections;
 public class CardView : MonoBehaviour
 {
     public CardData CardData { get; private set; }
-    public bool IsCollected { get; private set; }
+    public bool IsMatched { get; private set; }
 
     [Header("Card View Properties")]
     [SerializeField] private Sprite _cardFace;
@@ -30,7 +30,7 @@ public class CardView : MonoBehaviour
     {
         this.CardData = cardData;
         this._icon.sprite = cardData.cardSprite;
-        IsCollected = false;
+        IsMatched = false;
         _isFlipping = false;
         _faceUp = false;
         _spriteRenderer.sprite = _cardBack;
@@ -42,7 +42,7 @@ public class CardView : MonoBehaviour
     //Input
     private void OnMouseDown()
     {
-        if (!_isFlipping && !IsCollected)
+        if (!_isFlipping && !IsMatched)
         {
             EventManager.RaiseCardFlipped(this);
         }
@@ -59,9 +59,9 @@ public class CardView : MonoBehaviour
 
     public void SetAsMatched()
     {
-        if (!IsCollected)
+        if (!IsMatched)
         {
-            IsCollected = true;
+            IsMatched = true;
 
             if (_matchEffectPrefab != null)
             {
