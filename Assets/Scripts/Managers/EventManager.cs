@@ -21,7 +21,8 @@ public static class EventManager
 
     public static event Action<int, int> OnTurnUpdated;
     public static void RaiseTurnUpdated(int turnsTaken, int maxTurns) => OnTurnUpdated?.Invoke(turnsTaken, maxTurns);
-
+    public static event Action<int> OnComboUpdated;
+    public static void RaiseComboUpdated(int multiplier) => OnComboUpdated?.Invoke(multiplier);
     public static event Action OnGameLost;
     public static void RaiseGameLost() => OnGameLost?.Invoke();
 

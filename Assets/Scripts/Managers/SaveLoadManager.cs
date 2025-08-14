@@ -7,40 +7,31 @@ public class SaveLoadManager : MonoBehaviour
 
     void Awake()
     {
-
-        saveFilePath = Path.Combine(Application.persistentDataPath, "savegame.json");
+        
+        saveFilePath = Path.Combine(Application.persistentDataPath, "player_progress.json");
     }
 
-    public bool DoesSaveFileExist()
+    public void SaveProgress(PlayerProgress dataToSave)
     {
-        return File.Exists(saveFilePath);
-    }
-
-    public void SaveGame(GameSaveData dataToSave)
-    {
-
         string json = JsonUtility.ToJson(dataToSave, true);
-
         File.WriteAllText(saveFilePath, json);
-
-        Debug.Log("Game Saved to: " + saveFilePath);
+        Debug.Log("Player progress saved to: " + saveFilePath);
     }
 
-    public GameSaveData LoadGame()
+    public PlayerProgress LoadProgress()
     {
-        if (DoesSaveFileExist())
+        if (File.Exists(saveFilePath))
         {
             string json = File.ReadAllText(saveFilePath);
-
-            GameSaveData loadedData = JsonUtility.FromJson<GameSaveData>(json);
-
-            Debug.Log("Game Loaded!");
+            PlayerProgress loadedData = JsonUtility.FromJson<PlayerProgress>(json);
+            Debug.Log("Player progress loaded.");
             return loadedData;
         }
         else
         {
-            Debug.Log("No save file found.");
-            return null;
+            // If no save file exists, create a new one.
+            Debug.Log("No progress file found. Creating a new one.");
+            return new PlayerProgress();
         }
     }
 }

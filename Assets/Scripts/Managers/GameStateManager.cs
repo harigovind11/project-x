@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq; 
 
@@ -84,10 +85,11 @@ public class GameStateManager : MonoBehaviour
     
     // --- State Handler Methods ---
   private void HandleSplashScreen()
-{
-    ActivatePanelForState(GameState.SplashScreen);
-}
+  {
+      StartCoroutine(SplashScreenCoroutine());
+  }
 
+  
 private void HandleMainMenu()
 {
     Time.timeScale = 1f;
@@ -98,6 +100,10 @@ private void HandleGameplay()
 {
     Time.timeScale = 1f;
     ActivatePanelForState(GameState.Gameplay);
+    if (gameplayManager != null)
+    {
+        gameplayManager.StartNewGame();
+    }
 }
 
 private void HandlePaused()
@@ -112,11 +118,10 @@ private void HandlePaused()
 }
 private void HandleGameWonEvent()
 {
+    ProgressionManager.Instance.MarkLevelAsCompleted(gameplayManager.GetCurrentLevelName());
     
     int finalScore = gameplayManager.GetCurrentScore();
     int turnsRemaining = gameplayManager.GetTurnsRemaining();
-
-      
     ChangeState(GameState.ResultScreen);
 
     resultScreen.Setup(true, finalScore, turnsRemaining);
@@ -131,17 +136,23 @@ private void HandleGameLostEvent()
 
     resultScreen.Setup(false, finalScore, 0);
 }
+
+private IEnumerator SplashScreenCoroutine()
+{
+    ActivatePanelForState(GameState.SplashScreen);
+    yield return new WaitForSeconds(2f);
+    ChangeState(GameState.MainMenu);
+}
     
     // Helper Methods
     private void ActivatePanelForState(GameState state)
     {
-        // First, turn all panels off.
+       
         DeactivateAllPanels();
 
         // Then, find the correct panel in our list that matches the new state.
         UIPanel panelToActivate = uiPanels.Find(p => p.state == state);
-    
-        // If we found a matching panel, activate it.
+        
         if (panelToActivate != null && panelToActivate.panelObject != null)
         {
             panelToActivate.panelObject.SetActive(true);

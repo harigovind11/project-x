@@ -33,29 +33,6 @@ public class CardGenerator : MonoBehaviour
 
         InstantiateAndScaleGrid(levelData.columns, levelData.rows, cardsToCreate);
     }
-    public void GenerateBoardFromSave(LevelData levelData, List<CardSaveState> savedCards)
-    {
-        List<CardData> cardsToCreate = new List<CardData>();
-        foreach (var savedCard in savedCards)
-        {
-            CardData data = levelData.cardsToUse.Find(c => c.cardID == savedCard.cardID);
-            if (data != null)
-            {
-                cardsToCreate.Add(data);
-            }
-        }
-        
-        InstantiateAndScaleGrid(levelData.columns, levelData.rows, cardsToCreate);
-
-        var cardsOnBoard = FindObjectsOfType<CardView>();
-        foreach (var cardView in cardsOnBoard)
-        {
-            if (cardView.IsMatched) 
-            {
-                cardView.gameObject.SetActive(false);
-            }
-        }
-    }
     private void InstantiateAndScaleGrid(int columns, int rows, List<CardData> cards)
     {
         SpriteRenderer prefabRenderer = cardPrefab.GetComponent<SpriteRenderer>();
