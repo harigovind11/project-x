@@ -1,6 +1,14 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
+using System.Linq; 
 
+[System.Serializable]
+public class UIPanel
+{
+    public GameState state;
+    public GameObject panelObject;
+}
 public class GameStateManager : MonoBehaviour
 {
     public static GameStateManager Instance { get; private set; }
@@ -12,10 +20,7 @@ public class GameStateManager : MonoBehaviour
     [SerializeField] private GameplayManager gameplayManager;
 
     [Header("UI Panels")]
-    [SerializeField] private GameObject splashScreenPanel;
-    [SerializeField] private GameObject mainMenuPanel;
-    [SerializeField] private GameObject gameplayPanel;
-    [SerializeField] private GameObject pausePanel;
+    [SerializeField] private List<UIPanel> uiPanels;
     [SerializeField] private ResultScreen resultScreen;
 
     void Awake()
@@ -58,77 +63,92 @@ public class GameStateManager : MonoBehaviour
             case GameState.Paused:
                 HandlePaused();
                 break;
-            case GameState.GameWon:
-                HandleGameWon();
-                break;
-            case GameState.GameLost:
-                HandleGameLost();
-                break;
+            case GameState.ResultScreen:
+               ActivatePanelForState(GameState.ResultScreen);
+            break;
         }
         OnGameStateChanged?.Invoke(newState);
         Debug.Log($"New Game State: {newState}");
     }
     private void DeactivateAllPanels()
     {
-        if (splashScreenPanel != null) splashScreenPanel.SetActive(false);
-        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
-        if (gameplayPanel != null) gameplayPanel.SetActive(false);
-        if (pausePanel != null) pausePanel.SetActive(false);
-        
-    }
-
-    // --- State Handler Methods ---
-    private void HandleGameWonEvent()
-    {
-        ChangeState(GameState.GameWon);
-    }
-
-    private void HandleGameLostEvent()
-    {
-        ChangeState(GameState.GameLost);
-    }
-    private void HandleSplashScreen()
-    {
-        DeactivateAllPanels();
-        if (splashScreenPanel != null) splashScreenPanel.SetActive(true);
-    }
-
-    private void HandleMainMenu()
-    {
-        DeactivateAllPanels();
-        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
-    }
-
-    private void HandleGameplay()
-    {
-        DeactivateAllPanels();
-        if (gameplayPanel != null) gameplayPanel.SetActive(true);
-    }
-
-    private void HandlePaused()
-    {
-        if (pausePanel != null) pausePanel.SetActive(true);
-    }
-    
-    private void HandleGameWon()
-    {
-        Time.timeScale = 0f;
-        if (resultScreen != null)
+        // Loop through every panel in our list and deactivate it.
+        foreach (var panel in uiPanels)
         {
-            int finalScore = gameplayManager.GetCurrentScore(); 
-            int turnsRemaining = gameplayManager.GetTurnsRemaining(); 
-            resultScreen.Setup(true, finalScore, turnsRemaining);
+            if (panel.panelObject != null)
+            {
+                panel.panelObject.SetActive(false);
+            }
         }
     }
+    
+    // --- State Handler Methods ---
+  private void HandleSplashScreen()
+{
+    ActivatePanelForState(GameState.SplashScreen);
+}
 
-    private void HandleGameLost()
+private void HandleMainMenu()
+{
+    Time.timeScale = 1f;
+    ActivatePanelForState(GameState.MainMenu);
+}
+
+private void HandleGameplay()
+{
+    Time.timeScale = 1f;
+    ActivatePanelForState(GameState.Gameplay);
+}
+
+private void HandlePaused()
+{
+    Time.timeScale = 0f;
+
+    UIPanel pausePanel = uiPanels.Find(p => p.state == GameState.Paused);
+    if (pausePanel != null && pausePanel.panelObject != null)
     {
-        Time.timeScale = 0f;
-        if (resultScreen != null)
+        pausePanel.panelObject.SetActive(true);
+    }
+}
+private void HandleGameWonEvent()
+{
+    
+    int finalScore = gameplayManager.GetCurrentScore();
+    int turnsRemaining = gameplayManager.GetTurnsRemaining();
+
+      
+    ChangeState(GameState.ResultScreen);
+
+    resultScreen.Setup(true, finalScore, turnsRemaining);
+}
+
+private void HandleGameLostEvent()
+{
+   
+    int finalScore = gameplayManager.GetCurrentScore();
+
+    ChangeState(GameState.ResultScreen);
+
+    resultScreen.Setup(false, finalScore, 0);
+}
+    
+    // Helper Methods
+    private void ActivatePanelForState(GameState state)
+    {
+        // First, turn all panels off.
+        DeactivateAllPanels();
+
+        // Then, find the correct panel in our list that matches the new state.
+        UIPanel panelToActivate = uiPanels.Find(p => p.state == state);
+    
+        // If we found a matching panel, activate it.
+        if (panelToActivate != null && panelToActivate.panelObject != null)
         {
-            int finalScore = gameplayManager.GetCurrentScore();
-            int turnsRemaining = 0; 
-            resultScreen.Setup(false, finalScore, turnsRemaining);
+            panelToActivate.panelObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("No UI Panel found for state: " + state);
         }
     }
 }

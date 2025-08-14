@@ -4,6 +4,5 @@ public enum GameState
     MainMenu,
     Gameplay,
     Paused,
-    GameWon,
-    GameLost
+    ResultScreen
 }

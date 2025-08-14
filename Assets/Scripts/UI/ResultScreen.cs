@@ -24,7 +24,7 @@ public class ResultScreen : MonoBehaviour
 
         if (didWin)
         {
-            headerText.text = "You Won!";
+            headerText.text = "Won!";
             if (nextLevelButton != null) nextLevelButton.SetActive(true);
             
           
@@ -35,7 +35,7 @@ public class ResultScreen : MonoBehaviour
         }
         else
         {
-            headerText.text = "You Lost!";
+            headerText.text = "Lost!";
             if (nextLevelButton != null) nextLevelButton.SetActive(false);
 
       
@@ -46,8 +46,8 @@ public class ResultScreen : MonoBehaviour
         }
         
         totalScoreText.text = finalScore.ToString();
-        levelScoreText.text = "Level Score: " + finalScore;
-        remainingTurnsText.text = "Remaining Turns: " + turnsRemaining;
+        levelScoreText.text =finalScore.ToString();
+        remainingTurnsText.text = turnsRemaining.ToString();
     }
 
     // --- Button Methods ---

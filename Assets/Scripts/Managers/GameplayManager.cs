@@ -43,7 +43,7 @@ public class GameplayManager : MonoBehaviour
         }
         else
         {
-            StartNewGame();
+            // StartNewGame();
         }
 
     }
