@@ -1,4 +1,3 @@
-// File: Scripts/Managers/EventManager.cs
 using System;
 
 public static class EventManager

@@ -34,6 +34,7 @@ public class AudioManager : MonoBehaviour
         EventManager.OnMatchFailed += HandleMismatchFound;
         EventManager.OnGameWon += HandleGameOver;
         EventManager.OnGameLost += HandleGameOver;
+        GameStateManager.OnGameStateChanged += HandleGameStateChanged;
     }
 
     // Always unsubscribe from events when the object is disabled to prevent errors.
@@ -47,6 +48,18 @@ public class AudioManager : MonoBehaviour
     }
 
     // Event handlers to play sounds
+    
+    void HandleGameStateChanged(GameState newState)
+    {
+        if (newState == GameState.MainMenu)
+        {
+            // Play menu music
+        }
+        else if (newState == GameState.Gameplay)
+        {
+            // Play gameplay music
+        }
+    }
     private void HandleCardFlipped(CardView _)
     {
         PlaySound(cardFlipSound);

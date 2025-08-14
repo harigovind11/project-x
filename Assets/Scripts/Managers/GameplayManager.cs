@@ -131,22 +131,33 @@ public class GameplayManager : MonoBehaviour
 
 
         int totalPairsInLevel = currentLevel.columns * currentLevel.rows / 2;
-        if (_matchesFound >= totalPairsInLevel)
+        bool hasWon = _matchesFound >= totalPairsInLevel;
+        
+        if (hasWon)
         {
             _isGameActive = false;
-            EventManager.RaiseGameWon();
             // Todo : Trigger game won state, show UI, etc.
-            Debug.Log("Game Won");
+            EndGame(true);
         }
         else if (currentLevel.maxNumberOfTurns > 0 && _turnsTaken >= currentLevel.maxNumberOfTurns)
         {
             _isGameActive = false;
-            EventManager.RaiseGameLost();
             // Todo : Trigger game lost state, show UI, etc.
-            Debug.Log("Game Lost");
+            EndGame(false);
         }
     }
 
+    private void EndGame(bool didWin)
+    {
+        if (didWin)
+        {
+            EventManager.RaiseGameWon();
+        }
+        else
+        {
+            EventManager.RaiseGameLost();
+        }
+    }
     private void SaveCurrentGame()
     {
         GameSaveData saveData = new GameSaveData();
@@ -164,5 +175,16 @@ public class GameplayManager : MonoBehaviour
         }
         
         _saveLoadManager.SaveGame(saveData);
+    }
+    
+    // Helper Methods
+    public int GetCurrentScore()
+    {
+        return _score;
+    }
+
+    public int GetTurnsRemaining()
+    {
+        return currentLevel.maxNumberOfTurns - _turnsTaken;
     }
 }
