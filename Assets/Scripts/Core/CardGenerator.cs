@@ -16,12 +16,8 @@ public class CardGenerator : MonoBehaviour
     // Generates the full board of cards based on a LevelData asset.
     public void GenerateBoard(LevelData levelData)
     {
-        // Clear any existing cards before generating a new board
-        foreach (Transform child in transform)
-        {
-            Destroy(child.gameObject);
-        }
-
+      ClearBoard();
+      
         List<CardData> cardsToCreate = new List<CardData>();
         foreach (var cardData in levelData.cardsToUse)
         {
@@ -32,6 +28,13 @@ public class CardGenerator : MonoBehaviour
         cardsToCreate = cardsToCreate.OrderBy(x => Random.value).ToList();
 
         InstantiateAndScaleGrid(levelData.columns, levelData.rows, cardsToCreate);
+    }
+    public void ClearBoard()
+    {
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
     }
     private void InstantiateAndScaleGrid(int columns, int rows, List<CardData> cards)
     {
@@ -117,4 +120,6 @@ public class CardGenerator : MonoBehaviour
             }
         }
     }
+
+  
 }

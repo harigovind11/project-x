@@ -5,7 +5,10 @@ public static class EventManager
     // Gameplay Events
     public static event Action<CardView> OnCardFlipped;
     public static void RaiseCardFlipped(CardView card) => OnCardFlipped?.Invoke(card);
-
+    
+    public static event Action OnPlayerFlipSound;
+    public static void RaisePlayerFlipSound() => OnPlayerFlipSound?.Invoke();
+    
     public static event Action<CardData> OnMatchFound;
     public static void RaiseMatchFound(CardData cardData) => OnMatchFound?.Invoke(cardData);
 
@@ -28,5 +31,6 @@ public static class EventManager
     
     public static event Action OnNewGameStarted;
     public static void RaiseNewGameStarted() => OnNewGameStarted?.Invoke();
+    
 
 }

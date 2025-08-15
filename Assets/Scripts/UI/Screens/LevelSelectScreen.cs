@@ -34,4 +34,9 @@ public class LevelSelectScreen : MonoBehaviour
             levelButton.Setup(i, isCompleted, isLocked);
         }
     }
+
+    public void onCloseLevelSelectionButton()
+    {
+        GameStateManager.Instance.ChangeState(GameState.MainMenu);
+    }
 }

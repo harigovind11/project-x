@@ -19,6 +19,7 @@ public class GameStateManager : MonoBehaviour
     [Header("State Dependencies")]
     [Tooltip("The GameplayManager that controls the game board.")]
     [SerializeField] private GameplayManager gameplayManager;
+    [SerializeField] private CardGenerator cardGenerator; 
 
     [Header("UI Panels")]
     [SerializeField] private List<UIPanel> uiPanels;
@@ -48,7 +49,13 @@ public class GameStateManager : MonoBehaviour
     public void ChangeState(GameState newState)
     {
         if (newState == CurrentState) return;
-
+        if (CurrentState == GameState.Gameplay)
+        {
+            if (cardGenerator != null)
+            {
+                cardGenerator.ClearBoard();
+            }
+        }
         CurrentState = newState;
         switch (newState)
         {

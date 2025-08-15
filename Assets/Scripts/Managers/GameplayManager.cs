@@ -98,7 +98,8 @@ public class GameplayManager : MonoBehaviour
         {
             return;
         }
-
+        if(flippedCards.Count>0&& flippedCards[0] == card) return;
+        EventManager.RaisePlayerFlipSound();
         card.Flip();
         flippedCards.Add(card);
 

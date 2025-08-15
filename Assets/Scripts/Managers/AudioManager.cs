@@ -1,10 +1,23 @@
 using UnityEngine;
 
 
-[RequireComponent(typeof(AudioSource))]
 public class AudioManager : MonoBehaviour
 {
-    [Header("Audio Clips")]
+    [Header("Audio Sources")]
+    [SerializeField] private AudioSource musicSource; 
+    [SerializeField] private AudioSource sfxSource;  
+    
+    [Header("Music Tracks")]
+    
+    [Tooltip("The music that plays in the main menu.")]
+    [SerializeField] private AudioClip menuMusic;
+
+    [Tooltip("The music that plays during gameplay.")]
+    [SerializeField] private AudioClip gameplayMusic;
+
+
+    [Header("Sound Effects (SFX)")]
+    
     [Tooltip("The sound that plays when any card is flipped.")]
     [SerializeField] private AudioClip cardFlipSound;
 
@@ -20,27 +33,30 @@ public class AudioManager : MonoBehaviour
     [Tooltip("The sound that plays when the game is won or lost.")]
     [SerializeField] private AudioClip gameOverSound;
 
-    private AudioSource audioSource;
+  
 
-    void Awake()
+    void Start()
     {
-        audioSource = GetComponent<AudioSource>();
+        PlayMusic(menuMusic);
     }
 
     void OnEnable()
     {
-        EventManager.OnCardFlipped += HandleCardFlipped;
+        GameStateManager.OnGameStateChanged += HandleGameStateChanged;
+        
+        EventManager.OnPlayerFlipSound += HandleCardFlipped;
         EventManager.OnMatchFound += HandleMatchFound;
         EventManager.OnMatchFailed += HandleMismatchFound;
         EventManager.OnGameWon += HandleGameOver;
         EventManager.OnGameLost += HandleGameOver;
         GameStateManager.OnGameStateChanged += HandleGameStateChanged;
     }
-
-    // Always unsubscribe from events when the object is disabled to prevent errors.
+    
     void OnDisable()
     {
-        EventManager.OnCardFlipped -= HandleCardFlipped;
+        GameStateManager.OnGameStateChanged -= HandleGameStateChanged;
+        
+        EventManager.OnPlayerFlipSound -= HandleCardFlipped;
         EventManager.OnMatchFound -= HandleMatchFound;
         EventManager.OnMatchFailed -= HandleMismatchFound;
         EventManager.OnGameWon -= HandleGameWon;
@@ -48,48 +64,66 @@ public class AudioManager : MonoBehaviour
     }
 
     // Event handlers to play sounds
-    
+
     void HandleGameStateChanged(GameState newState)
     {
         if (newState == GameState.MainMenu)
         {
-            // Play menu music
+   
+           PlayMusic(menuMusic);
         }
         else if (newState == GameState.Gameplay)
         {
-            // Play gameplay music
+   
+            PlayMusic(gameplayMusic);
         }
     }
-    private void HandleCardFlipped(CardView _)
+    private void HandleCardFlipped()
     {
-        PlaySound(cardFlipSound);
+        PlaySfx(cardFlipSound);
     }
 
     private void HandleMatchFound(CardData _)
     {
-        PlaySound(matchSuccessfulSound);
+        PlaySfx(matchSuccessfulSound);
     }
 
     private void HandleMismatchFound()
     {
-        PlaySound(mismatchSound);
+        PlaySfx(mismatchSound);
     }
 
     private void HandleGameWon()
     {
-        PlaySound(levelCompleteSound);
+        PlaySfx(levelCompleteSound);
     }
 
     private void HandleGameOver()
     {
-        PlaySound(gameOverSound);
+        PlaySfx(gameOverSound);
     }
 
-    private void PlaySound(AudioClip clip)
+ 
+    private void PlaySfx(AudioClip clip)
     {
         if (clip != null)
         {
-            audioSource.PlayOneShot(clip);
+            sfxSource.PlayOneShot(clip);
         }
     }
+    private void PlayMusic(AudioClip musicClip)
+    {
+        if (musicSource != null && musicClip != null)
+        {
+            if (musicSource.clip == musicClip && musicSource.isPlaying)
+            {
+                return;
+            }
+
+            musicSource.clip = musicClip;
+            musicSource.loop = true; 
+            musicSource.Play();
+        }
+    }
+
 }
