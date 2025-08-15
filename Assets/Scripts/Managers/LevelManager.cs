@@ -70,4 +70,18 @@ public class LevelManager : MonoBehaviour
     {
         GameStateManager.Instance.ChangeState(GameState.Gameplay);
     }
+    
+    public List<LevelData> GetAllLevels()
+    {
+        return levels;
+    }
+
+    public void LoadSpecificLevel(int levelIdx)
+    {
+        if (levelIdx < levels.Count)
+        {
+            currentLevelIndex = levelIdx;
+            GameStateManager.Instance.ChangeState(GameState.Gameplay);
+        }
+    }
 }

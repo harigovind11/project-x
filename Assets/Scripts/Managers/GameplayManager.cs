@@ -187,7 +187,6 @@ public class GameplayManager : MonoBehaviour
     {
         return comboMultiplier;
     }
-    
     public string GetCurrentLevelName()
     {
         return currentLevel.name;

@@ -58,6 +58,9 @@ public class GameStateManager : MonoBehaviour
             case GameState.MainMenu:
                 HandleMainMenu();
                 break;
+            case GameState.LevelSelect:
+                HandleLevelSelect();
+                break;
             case GameState.Gameplay:
                 HandleGameplay();
                 break;
@@ -94,6 +97,11 @@ private void HandleMainMenu()
 {
     Time.timeScale = 1f;
     ActivatePanelForState(GameState.MainMenu);
+}
+
+private void HandleLevelSelect()
+{
+    ActivatePanelForState(GameState.LevelSelect);
 }
 
 private void HandleGameplay()
