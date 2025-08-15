@@ -10,6 +10,7 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private TextMeshProUGUI totalScoreText;
     [SerializeField] private TextMeshProUGUI levelScoreText; 
     [SerializeField] private TextMeshProUGUI remainingTurnsText; 
+    [SerializeField] private TextMeshProUGUI comboEarnedText;
 
     [Header("Stars")]
     [SerializeField] private GameObject[] stars; 
@@ -18,7 +19,7 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private GameObject nextLevelButton;
 
 
-    public void Setup(bool didWin, int finalScore, int turnsRemaining)
+    public void Setup(bool didWin, int finalScore, int turnsRemaining,int comboEarned)
     {
         gameObject.SetActive(true);
 
@@ -48,6 +49,7 @@ public class ResultScreen : MonoBehaviour
         totalScoreText.text = finalScore.ToString();
         levelScoreText.text =finalScore.ToString();
         remainingTurnsText.text = turnsRemaining.ToString();
+        comboEarnedText.text= comboEarned.ToString();
     }
 
     // --- Button Methods ---
@@ -61,15 +63,12 @@ public class ResultScreen : MonoBehaviour
     public void OnRestartButton()
     {
         Time.timeScale = 1f;
-        GameStateManager.Instance.ChangeState(GameState.Gameplay);
+        LevelManager.Instance.RestartCurrentLevel();
     }
-
-
-
+    
     public void OnNextLevelButton()
     {
-        // For now, this can just restart the current level.
-        // Later, you would add logic to load the next LevelData asset.
-        OnRestartButton();
+        Time.timeScale = 1f;
+        LevelManager.Instance.LoadNextLevel();
     }
 }

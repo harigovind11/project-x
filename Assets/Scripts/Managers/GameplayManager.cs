@@ -4,16 +4,16 @@ using System.Collections.Generic;
 
 public class GameplayManager : MonoBehaviour
 {
-    [Header("Level Configuration")]
-    [SerializeField] private LevelData currentLevel;
 
     [Header("Dependencies")]
     [SerializeField] private CardGenerator cardGenerator; 
 
     [Header("Game Feel")]
     [SerializeField] private float delayBeforeHidingMismatch = 0.8f;
+    [SerializeField] private float previewDuration = 2.0f; 
 
     // --- Private Game State ---
+    private LevelData currentLevel;
     private List<CardView> flippedCards = new List<CardView>();
     private int matchesFound = 0;
     private int score = 0;
@@ -41,40 +41,54 @@ public class GameplayManager : MonoBehaviour
     
 
     #endregion
-
-    // private IEnumerator RevealCardsTemporarily()
-    // {
-    //     foreach (var card in _generatedItems) card.Flip();
-    //
-    //     yield return new WaitForSeconds(_revealDuration);
-    //     foreach (var card in _generatedItems)
-    //     {
-    //         card.Flip();
-    //         card.OnCardTap += OnCardClick;
-    //     }
-    // }
-    public void StartNewGame()
+    
+    public void StartNewGame(LevelData levelToPlay)
+    {
+        currentLevel = levelToPlay;
+        StartCoroutine(GameStartSequenceCoroutine());
+    }
+    
+    private IEnumerator GameStartSequenceCoroutine()
     {
         matchesFound = 0;
         score = 0;
         turnsTaken = 0;
-        isGameActive = true;
+        isGameActive = false; 
         isCheckingForMatch = false;
         flippedCards.Clear();
-
-        consecutiveMatches = 0;
         comboMultiplier = 1;
-        
-        cardGenerator.GenerateBoard(currentLevel);
+        consecutiveMatches = 0;
+
+        EventManager.RaiseNewGameStarted();
         EventManager.RaiseScoreUpdated(score);
         EventManager.RaiseTurnUpdated(turnsTaken, currentLevel.maxNumberOfTurns);
+        
+        cardGenerator.GenerateBoard(currentLevel);
+        
+        yield return new WaitForSeconds(0.5f);
+
+        CardView[] cardsOnBoard = FindObjectsOfType<CardView>();
+        foreach (var card in cardsOnBoard)
+        {
+            card.Flip();
+        }
+        yield return new WaitForSeconds(previewDuration);
+
+        foreach (var card in cardsOnBoard)
+        {
+            card.Flip();
+        }
+        
+        yield return new WaitForSeconds(0.5f);
+
+        isGameActive = true;
     }
 
     private void HandleGameStateChanged(GameState newState)
     {
         if (newState == GameState.Gameplay)
         {
-            StartNewGame();
+            StartNewGame(currentLevel);
         }
     }
 
@@ -167,6 +181,11 @@ public class GameplayManager : MonoBehaviour
     {
         if (currentLevel.maxNumberOfTurns == 0) return 0;
         return currentLevel.maxNumberOfTurns - turnsTaken;
+    }
+
+    public int GetCombosEarned()
+    {
+        return comboMultiplier;
     }
     
     public string GetCurrentLevelName()

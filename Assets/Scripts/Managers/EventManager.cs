@@ -25,5 +25,8 @@ public static class EventManager
     public static void RaiseComboUpdated(int multiplier) => OnComboUpdated?.Invoke(multiplier);
     public static event Action OnGameLost;
     public static void RaiseGameLost() => OnGameLost?.Invoke();
+    
+    public static event Action OnNewGameStarted;
+    public static void RaiseNewGameStarted() => OnNewGameStarted?.Invoke();
 
 }

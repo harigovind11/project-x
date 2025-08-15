@@ -100,9 +100,14 @@ private void HandleGameplay()
 {
     Time.timeScale = 1f;
     ActivatePanelForState(GameState.Gameplay);
-    if (gameplayManager != null)
+    LevelData levelToPlay = LevelManager.Instance.GetCurrentLevelData();
+    if (gameplayManager != null && levelToPlay!=null)
     {
-        gameplayManager.StartNewGame();
+        gameplayManager.StartNewGame(levelToPlay);
+    } else
+    {
+        Debug.LogError("Could not find a level to play!");
+        ChangeState(GameState.MainMenu);
     }
 }
 
@@ -122,19 +127,21 @@ private void HandleGameWonEvent()
     
     int finalScore = gameplayManager.GetCurrentScore();
     int turnsRemaining = gameplayManager.GetTurnsRemaining();
+    int combosEarned = gameplayManager.GetCombosEarned();
     ChangeState(GameState.ResultScreen);
 
-    resultScreen.Setup(true, finalScore, turnsRemaining);
+    resultScreen.Setup(true, finalScore, turnsRemaining,combosEarned);
 }
 
 private void HandleGameLostEvent()
 {
    
     int finalScore = gameplayManager.GetCurrentScore();
-
+    int combosEarned = gameplayManager.GetCombosEarned();
+    
     ChangeState(GameState.ResultScreen);
 
-    resultScreen.Setup(false, finalScore, 0);
+    resultScreen.Setup(false, finalScore, 0,combosEarned);
 }
 
 private IEnumerator SplashScreenCoroutine()
