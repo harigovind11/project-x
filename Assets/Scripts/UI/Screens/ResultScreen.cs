@@ -19,7 +19,7 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private GameObject nextLevelButton;
 
 
-    public void Setup(bool didWin, int finalScore, int turnsRemaining,int comboEarned)
+    public void Setup(bool didWin, int levelScore,int totalScore, int turnsRemaining,int comboEarned)
     {
         gameObject.SetActive(true);
 
@@ -46,8 +46,8 @@ public class ResultScreen : MonoBehaviour
             }
         }
         
-        totalScoreText.text = finalScore.ToString();
-        levelScoreText.text =finalScore.ToString();
+        levelScoreText.text =levelScore.ToString();
+        totalScoreText.text = totalScore.ToString();
         remainingTurnsText.text = turnsRemaining.ToString();
         comboEarnedText.text= comboEarned.ToString();
     }

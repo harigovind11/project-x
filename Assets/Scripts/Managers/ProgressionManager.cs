@@ -10,7 +10,6 @@ public class ProgressionManager : MonoBehaviour
 
     void Awake()
     {
-        // Singleton Pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -25,12 +24,17 @@ public class ProgressionManager : MonoBehaviour
 
     public void MarkLevelAsCompleted(string levelName)
     {
-        // Check if the level is not already marked as complete
         if (!CurrentProgress.completedLevels.Contains(levelName))
         {
             CurrentProgress.completedLevels.Add(levelName);
             SavePlayerProgress();
         }
+    }
+
+    public void AddToTotalScore(int scoreToAdd)
+    {
+        CurrentProgress.totalScore += scoreToAdd;
+        SavePlayerProgress();
     }
 
     private void SavePlayerProgress()
