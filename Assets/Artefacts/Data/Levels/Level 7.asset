@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   columns: 4
   rows: 5
-  maxNumberOfTurns: 15
+  maxNumberOfTurns: 18
   cardsToUse:
   - {fileID: 11400000, guid: a537e8be35850a34ea9b4292d3190094, type: 2}
   - {fileID: 11400000, guid: 176300660682a01419c209299b16fd4a, type: 2}

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,15 +14,19 @@ public class GameplayManager : MonoBehaviour
     [SerializeField] private float previewDuration = 2.0f; 
 
     // --- Private Game State ---
-    private LevelData currentLevel;
+  
     private List<CardView> flippedCards = new List<CardView>();
+    private Queue<CardView> flippedCardsToProcess = new Queue<CardView>();
+    private LevelData currentLevel;
+    
     private int matchesFound = 0;
     private int score = 0;
     private int turnsTaken = 0;
-    private bool isCheckingForMatch = false;
+    private bool isProcessingPair  = false;
     private bool isGameActive = true;
     
     private int comboThreshold = 2;
+    private int combosEarned;
     private int comboMultiplier;
     private int consecutiveMatches;
 
@@ -38,7 +43,16 @@ public class GameplayManager : MonoBehaviour
         EventManager.OnCardFlipped -= HandleCardFlipped;
         GameStateManager.OnGameStateChanged -= HandleGameStateChanged;
     }
-    
+
+    private void Update()
+    {
+        if (!isProcessingPair && flippedCardsToProcess.Count >= 2)
+        {
+            CardView card1 = flippedCardsToProcess.Dequeue();
+            CardView card2 = flippedCardsToProcess.Dequeue();
+            StartCoroutine((ProcessFlippedCardsCoroutine(card1, card2)));
+        }
+    }
 
     #endregion
     
@@ -48,53 +62,20 @@ public class GameplayManager : MonoBehaviour
         StartCoroutine(GameStartSequenceCoroutine());
     }
     
-    private IEnumerator GameStartSequenceCoroutine()
-    {
-        matchesFound = 0;
-        score = 0;
-        turnsTaken = 0;
-        isGameActive = false; 
-        isCheckingForMatch = false;
-        flippedCards.Clear();
-        comboMultiplier = 1;
-        consecutiveMatches = 0;
-
-        EventManager.RaiseNewGameStarted();
-        EventManager.RaiseScoreUpdated(score);
-        EventManager.RaiseTurnUpdated(turnsTaken, currentLevel.maxNumberOfTurns);
-        
-        cardGenerator.GenerateBoard(currentLevel);
-        
-        yield return new WaitForSeconds(0.5f);
-
-        CardView[] cardsOnBoard = FindObjectsOfType<CardView>();
-        foreach (var card in cardsOnBoard)
-        {
-            card.Flip();
-        }
-        yield return new WaitForSeconds(previewDuration);
-
-        foreach (var card in cardsOnBoard)
-        {
-            card.Flip();
-        }
-        
-        yield return new WaitForSeconds(0.5f);
-
-        isGameActive = true;
-    }
-
     private void HandleGameStateChanged(GameState newState)
     {
         if (newState == GameState.Gameplay)
         {
-            StartNewGame(currentLevel);
+            StartNewGame(LevelManager.Instance.GetCurrentLevelData());
         }
     }
-
+    
     private void HandleCardFlipped(CardView card)
     {
-        if (!isGameActive || isCheckingForMatch)
+        if (!isGameActive ||
+            flippedCards.Contains(card) ||
+            flippedCardsToProcess.Contains(card)||
+            !card.gameObject.activeInHierarchy)
         {
             return;
         }
@@ -107,25 +88,31 @@ public class GameplayManager : MonoBehaviour
         {
             turnsTaken++;
             EventManager.RaiseTurnUpdated(turnsTaken, currentLevel.maxNumberOfTurns);
-            StartCoroutine(CheckForMatchCoroutine());
+           flippedCardsToProcess.Enqueue(flippedCards[0]);
+           flippedCardsToProcess.Enqueue(flippedCards[1]);
+           
+           flippedCards.Clear();
         }
     }
 
-    private IEnumerator CheckForMatchCoroutine()
-    {
-        isCheckingForMatch = true;
-        yield return new WaitForSeconds(delayBeforeHidingMismatch);
+    private IEnumerator ProcessFlippedCardsCoroutine(CardView card1, CardView card2)
+    {  if (card1 == null || card2 == null)
+        {
+            yield break; 
+        }
+        isProcessingPair = true;
 
-        CardView card1 = flippedCards[0];
-        CardView card2 = flippedCards[1];
+        yield return new WaitForSeconds(delayBeforeHidingMismatch);
 
         if (card1.CardData.cardID == card2.CardData.cardID)
         {
+            // --- MATCH FOUND ---
             matchesFound++;
             consecutiveMatches++;
             if (consecutiveMatches >= comboThreshold)
             {
                 comboMultiplier++;
+                combosEarned++;
                 EventManager.RaiseComboUpdated(comboMultiplier);
             }
             score += 1; 
@@ -136,17 +123,23 @@ public class GameplayManager : MonoBehaviour
         }
         else
         {
+            // --- MISMATCH ---
             consecutiveMatches = 0;
-            comboMultiplier = 1;
-            
+            if (comboMultiplier > 1)
+            {
+                comboMultiplier = 1;
+                EventManager.RaiseComboUpdated(comboMultiplier);
+            }
             card1.Flip();
             card2.Flip();
             EventManager.RaiseMatchFailed();
         }
+        CheckEndGameConditions();
+        isProcessingPair = false;
+    }
 
-        flippedCards.Clear();
-        isCheckingForMatch = false;
-
+    private void CheckEndGameConditions()
+    {
         int totalPairsInLevel = currentLevel.columns * currentLevel.rows / 2;
         if (matchesFound >= totalPairsInLevel)
         {
@@ -159,7 +152,7 @@ public class GameplayManager : MonoBehaviour
             EndGame(false); // Game Lost
         }
     }
-
+        
     private void EndGame(bool didWin)
     {
         if (didWin)
@@ -172,6 +165,43 @@ public class GameplayManager : MonoBehaviour
         }
     }
     
+    // Starter Methods
+    private IEnumerator GameStartSequenceCoroutine()
+    {
+        flippedCards.Clear();
+        flippedCardsToProcess.Clear();
+        isProcessingPair = false;
+        
+        matchesFound = 0;
+        score = 0;
+        turnsTaken = 0;
+        isGameActive = false; 
+        combosEarned = 0;
+        comboMultiplier = 1;
+        consecutiveMatches = 0;
+
+        EventManager.RaiseNewGameStarted();
+        EventManager.RaiseScoreUpdated(score);
+        EventManager.RaiseTurnUpdated(turnsTaken, currentLevel.maxNumberOfTurns);
+        
+        cardGenerator.ClearBoard();
+        cardGenerator.GenerateBoard(currentLevel);
+        
+        yield return new WaitForSeconds(0.5f);
+
+        CardView[] cardsOnBoard = FindObjectsOfType<CardView>();
+        
+        foreach (var card in cardsOnBoard) card.Flip();
+      
+        yield return new WaitForSeconds(previewDuration);
+
+        foreach (var card in cardsOnBoard) card.Flip();
+        
+        yield return new WaitForSeconds(0.5f);
+
+        isGameActive = true;
+    }
+
     // Helper Methods
     public int GetCurrentScore()
     {
@@ -186,7 +216,7 @@ public class GameplayManager : MonoBehaviour
 
     public int GetCombosEarned()
     {
-        return comboMultiplier;
+        return combosEarned;
     }
     public string GetCurrentLevelName()
     {

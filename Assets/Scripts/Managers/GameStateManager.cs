@@ -22,6 +22,7 @@ public class GameStateManager : MonoBehaviour
 
     void Awake()
     {
+        Time.timeScale = 1f;
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -35,7 +36,8 @@ public class GameStateManager : MonoBehaviour
     {
         EventManager.OnGameWon += HandleGameWonEvent;
         EventManager.OnGameLost += HandleGameLostEvent;
-        ChangeState(GameState.SplashScreen);
+        print(CurrentState);
+        ChangeState(GameState.SplashScreen); 
     }
     void OnDestroy()
     {
@@ -66,9 +68,6 @@ public class GameStateManager : MonoBehaviour
                 break;
             case GameState.Gameplay:
                 HandleGameplay();
-                break;
-            case GameState.Paused:
-                HandlePaused();
                 break;
             case GameState.ResultScreen:
                 ActivatePanelForState(GameState.ResultScreen);
@@ -122,30 +121,27 @@ public class GameStateManager : MonoBehaviour
             ChangeState(GameState.MainMenu);
         }
     }
-
-    private void HandlePaused()
-    {
-        Time.timeScale = 0f;
-
-        UIPanel pausePanel = uiPanels.Find(p => p.state == GameState.Paused);
-        if (pausePanel != null && pausePanel.panelObject != null)
-        {
-            pausePanel.panelObject.SetActive(true);
-        }
-    }
     private void HandleGameWonEvent()
-    { 
-        ProgressionManager.Instance.MarkLevelAsCompleted(gameplayManager.GetCurrentLevelName());
+    {
         
+        
+        string levelName = gameplayManager.GetCurrentLevelName();
         int levelScore = gameplayManager.GetCurrentScore();
         int turnsRemaining = gameplayManager.GetTurnsRemaining();
         int combosEarned = gameplayManager.GetCombosEarned();
+        bool isFirstTimeCompletion  =!ProgressionManager.Instance.CurrentProgress.completedLevels.Contains(levelName);
+
+        ProgressionManager.Instance.MarkLevelAsCompleted(levelName);
         
-        ProgressionManager.Instance.AddToTotalScore(levelScore);
+        if (isFirstTimeCompletion)
+        {
+            ProgressionManager.Instance.AddToTotalScore(levelScore);
+        }
+       
         int newTotalScore = ProgressionManager.Instance.CurrentProgress.totalScore;
-        
+
         ChangeState(GameState.ResultScreen);
-        resultScreen.Setup(true,levelScore,newTotalScore,turnsRemaining,combosEarned);
+        resultScreen.Setup(true, levelScore, newTotalScore, turnsRemaining, combosEarned);
     }
 
     private void HandleGameLostEvent()
@@ -157,7 +153,7 @@ public class GameStateManager : MonoBehaviour
 
         ChangeState(GameState.ResultScreen);
 
-        resultScreen.Setup(false,levelScore,totalScore,0,combosEarned);
+        resultScreen.Setup(false, levelScore, totalScore, 0, combosEarned);
     }
 
     private IEnumerator SplashScreenCoroutine()

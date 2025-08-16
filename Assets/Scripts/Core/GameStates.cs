@@ -1,9 +1,9 @@
 public enum GameState
 {
+    Preload,
     SplashScreen,
     MainMenu,
     LevelSelect,
     Gameplay,
-    Paused,
     ResultScreen
 }

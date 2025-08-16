@@ -20,7 +20,7 @@ public class LevelManager : MonoBehaviour
         else
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            // DontDestroyOnLoad(gameObject);
             DetermineCurrentLevel();
         }
     }
